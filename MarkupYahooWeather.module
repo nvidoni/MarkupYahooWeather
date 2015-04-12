@@ -366,105 +366,103 @@ class MarkupYahooWeather extends WireData implements Module, ConfigurableModule 
 
 		$data = array_merge(self::$options, $data);
 
-        $field = $modules->get("InputfieldText");
-		$field->name = "woeid";
-		$field->label = "Yahoo! Weather WOEID";
+        $field = $modules->get('InputfieldText');
+		$field->name = 'woeid';
+		$field->label = 'Yahoo! Weather WOEID';
 		$field->value = $data['woeid'];
-		$field->description = __("WOEID (Where On Earth ID)", __FILE__);
+		$field->description = __('WOEID (Where On Earth ID)', __FILE__);
 		$fields->add($field);
 
-        $field = $modules->get("InputfieldText");
-		$field->name = "locale";
-		$field->label = __("Set Locale", __FILE__);
+        $field = $modules->get('InputfieldText');
+		$field->name = 'locale';
+		$field->label = __('Set Locale', __FILE__);
 		$field->value = $data['locale'];
-		$field->description = __("See the [PHP setlocale](http://php.net/manual/en/function.setlocale.php) function reference for more information.", __FILE__);
+		$field->description = __('See the [PHP setlocale](http://php.net/manual/en/function.setlocale.php) function reference for more information.', __FILE__);
         $field->columnWidth = 50;
         $fields->add($field);
 
-        $field = $modules->get("InputfieldText");
-		$field->name = "encoding";
-		$field->label = __("Set Encoding", __FILE__);
+        $field = $modules->get('InputfieldText');
+		$field->name = 'encoding';
+		$field->label = __('Set Encoding', __FILE__);
 		$field->value = $data['encoding'];
-		$field->description = __("Converts international date names to right format. Default = ISO-8859-1", __FILE__);
+		$field->description = __('Converts international date names to right format. Default = ISO-8859-1', __FILE__);
         $field->columnWidth = 50;
         $fields->add($field);
 
         $field = $modules->get("InputfieldText");
-		$field->name = "date";
-		$field->label = __("Date Format", __FILE__);
+		$field->name = 'date';
+		$field->label = __('Date Format', __FILE__);
 		$field->value = $data['date'];
-		$field->description = __("See the [PHP strftime](http://php.net/manual/en/function.strftime.php) function reference for more information.", __FILE__);
+		$field->description = __('See the [PHP strftime](http://php.net/manual/en/function.strftime.php) function reference for more information.', __FILE__);
         $field->columnWidth = 50;
         $fields->add($field);
 
-        $field = $modules->get("InputfieldText");
-		$field->name = "cache";
-		$field->label = __("Cache Time", __FILE__);
+        $field = $modules->get('InputfieldText');
+		$field->name = 'cache';
+		$field->label = __('Cache Time', __FILE__);
 		$field->value = $data['cache'];
-		$field->description = __("Cache time in minutes. Default = 5 minutes", __FILE__);
+		$field->description = __('Cache time in minutes. Default = 5 minutes', __FILE__);
         $field->columnWidth = 50;
         $fields->add($field);
 
         $field = $modules->get("InputfieldCheckbox");
-		$field->name = "scale";
-        $field->label = __("Display temperature in Fahrenheit instead of Celsius?", __FILE__);
+		$field->name = 'scale';
+        $field->label = __('Display temperature in Fahrenheit instead of Celsius?', __FILE__);
         $field->value = 1;
 		$field->attr('checked', empty($data['scale']) ? '' : 'checked');
         $field->columnWidth = 50;
         $fields->add($field);
 
-        $field = $modules->get("InputfieldCheckbox");
-		$field->name = "days";
-        $field->label = __("Show 5 day forecast below current weather forecast?", __FILE__);
+        $field = $modules->get('InputfieldCheckbox');
+		$field->name = 'days';
+        $field->label = __('Show 5 day forecast below current weather forecast?', __FILE__);
         $field->value = 1;
 		$field->attr('checked', empty($data['days']) ? '' : 'checked');
         $field->columnWidth = 50;
         $fields->add($field);
 
-        $field = $modules->get("InputfieldCheckbox");
-		$field->name = "wind";
-        $field->label = __("Show wind direction and speed?", __FILE__);
+        $field = $modules->get('InputfieldCheckbox');
+		$field->name = 'wind';
+        $field->label = __('Show wind direction and speed?', __FILE__);
         $field->value = 1;
 		$field->attr('checked', empty($data['wind']) ? '' : 'checked');
         $field->columnWidth = 50;
         $fields->add($field);
 
-        $field = $modules->get("InputfieldCheckbox");
-		$field->name = "time";
-        $field->label = __("Show sunrise and sunset time?", __FILE__);
+        $field = $modules->get('InputfieldCheckbox');
+		$field->name = 'time';
+        $field->label = __('Show sunrise and sunset time?', __FILE__);
         $field->value = 1;
 		$field->attr('checked', empty($data['time']) ? '' : 'checked');
         $field->columnWidth = 50;
         $fields->add($field);
 
-
-
-        $field = $modules->get("InputfieldCheckbox");
-		$field->name = "autoload";
-        $field->label = __("Autoload script and stylesheet?", __FILE__);
+        $field = $modules->get('InputfieldCheckbox');
+		$field->name = 'autoload';
+        $field->label = __('Autoload script and stylesheet?', __FILE__);
         $field->value = 1;
 		$field->attr('checked', empty($data['autoload']) ? '' : 'checked');
         $field->columnWidth = 50;
         $fields->add($field);
 
-        $field = $modules->get("InputfieldCheckbox");
-		$field->name = "script";
-        $field->label = __("Load script in the bottom of the page?", __FILE__);
+        $field = $modules->get('InputfieldCheckbox');
+		$field->name = 'script';
+        $field->label = __('Load script in the bottom of the page?', __FILE__);
         $field->value = 0;
 		$field->attr('checked', empty($data['script']) ? '' : 'checked');
         $field->columnWidth = 50;
         $fields->add($field);
 
         $fieldset = $modules->get('InputfieldFieldset');
-        $fieldset->label = 'Delete weather cache';
-        $fieldset->description = 'New cache will be generated upon next page render (actual page that renders the module).';
+        $fieldset->label = __('Delete weather cache');
+        $fieldset->description = __('New cache will be generated upon next page render (actual page that renders the module).');
         $fields->add($fieldset);
 
-        $button = $modules->get("InputfieldButton");
+        $button = $modules->get('InputfieldButton');
         $button->id = 'cache-delete';
         $button->addClass('head_button_clone');
         $button->type = 'submit';
-        $button->value = 'Delete Weather Cache';
+        $button->value = __('Delete Weather Cache');
         $button->name = 'cache-delete';
         $fieldset->add($button);
 
