@@ -1,0 +1,475 @@
+<?php
+
+/**
+ * Markup Yahoo! Weather
+ *
+ * Display weather forecast using Yahoo! Weather API
+ *
+ * Copyright (C) 2015 by Nikola Vidoni
+ * Licensed under GNU/GPL
+ * https://www.gnu.org/licenses/gpl-2.0.html
+ *
+ */
+
+class MarkupYahooWeather extends WireData implements Module, ConfigurableModule {
+
+	public static function getModuleInfo() {
+		return array(
+			'title' => 'Markup Yahoo! Weather',
+			'version' => 100,
+			'summary' => __('Display weather forecast using Yahoo! Weather API', __FILE__),
+            'href' => '',
+            'autoload' => true,
+            'singular' => true,
+            'icon' => 'sun-o'
+		);
+	}
+
+    protected static $options = array(
+        'woeid' => '851128',
+        'locale' => 'en_US.UTF-8',
+        'encoding' => 'ISO-8859-1',
+        'date' => '%A, %d.%m.%Y.',
+        'cache' => 5,
+        'scale' => 0,
+        'days' => 1,
+        'wind' => 1,
+        'time' => 1,
+        'autoload' => 1,
+        'script' => 0
+    );
+
+    public function __construct() {
+	   foreach(self::$options as $key => $value) {
+		   	$this->set($key, $value);
+	   }
+	}
+
+    public function init() {
+        if($this->autoload == 1) {
+            $this->addHookAfter('Page::render', $this, 'setStyle');
+            $this->addHookAfter('Page::render', $this, 'setScript');
+        }
+        if($this->input->post('cache-delete')) {
+            $this->deleteCache();
+        }
+    }
+
+    public function deleteCache() {
+
+        $dir = wire('config')->paths->siteModules . 'MarkupYahooWeather/cache';
+
+        $handle = opendir($dir);
+
+        while (($file = readdir($handle)) !== false) {
+            if (file_exists($dir . '/' . $file)) {
+                if (unlink($dir .'/'. $file)) {
+                    $this->message(__('Weather Cache successfully deleted!'));
+                }
+            } else {
+                $this->error(__('Weather Cache doesn\'t exist!'));
+            }
+        }
+
+        closedir($handle);
+
+    }
+
+    public function setStyle(HookEvent $event) {
+
+        $page = $event->object;
+
+        if($page->template == 'admin') return;
+
+        $style = '<link rel="stylesheet" type="text/css" href="' . $this->config->urls->MarkupYahooWeather . 'MarkupYahooWeather.css">' . PHP_EOL;
+
+        $event->return = str_ireplace('</head>', $style . '</head>', $event->return);
+
+    }
+
+    public function setScript(HookEvent $event) {
+
+        $page = $event->object;
+
+        if ($page->template == 'admin') return;
+
+        $script = '<script type="text/javascript" src="' . $this->config->urls->MarkupYahooWeather . 'MarkupYahooWeather.js"></script>' . PHP_EOL;
+
+        $position = $this->script ? '</body>' : '</head>';
+
+        $event->return = str_ireplace($position, $script . $position, $event->return);
+
+    }
+
+    public function getWeather($file, $url, $time = 5) {
+
+	    $currentTime = time(); $expireTime = $time * 60;
+
+        if (file_exists($file)) {
+            $fileTime = filemtime($file);
+        }
+
+	    if (file_exists($file) && ($currentTime - $expireTime < $fileTime)) {
+            $content = file_get_contents($file);
+	    } else {
+		    $content = file_get_contents($url);
+            file_put_contents($file, $content);
+	    }
+
+        return $content;
+
+    }
+
+    public function getDay($day) {
+
+        $days = array(
+            'Mon' => __('Mon', __FILE__),
+            'Tue' => __('Tue', __FILE__),
+            'Wed' => __('Wed', __FILE__),
+            'Thu' => __('Thu', __FILE__),
+            'Fri' => __('Fri', __FILE__),
+            'Sat' => __('Sat', __FILE__),
+            'Sun' => __('Sun', __FILE__)
+        );
+
+        return strtr($day, $days);
+
+    }
+
+    public function getCondition($condition) {
+
+        $conditions = array(
+            '0'  => __('Tornado', __FILE__),
+            '1'  => __('Tropical Storm', __FILE__),
+            '2'  => __('Hurricane', __FILE__),
+            '3'  => __('Severe Thunderstorms', __FILE__),
+            '4'  => __('Thunderstorms', __FILE__),
+            '5'  => __('Mixed Rain And Snow', __FILE__),
+            '6'  => __('Mixed Rain And Sleet', __FILE__),
+            '7'  => __('Mixed Snow And Sleet', __FILE__),
+            '8'  => __('Freezing Drizzle', __FILE__),
+            '9'  => __('Drizzle', __FILE__),
+            '10' => __('Freezing Rain', __FILE__),
+            '11' => __('Showers', __FILE__),
+            '12' => __('Showers', __FILE__),
+            '13' => __('Snow Flurries', __FILE__),
+            '14' => __('Light Snow Showers', __FILE__),
+            '15' => __('Blowing Snow', __FILE__),
+            '16' => __('Snow', __FILE__),
+            '17' => __('Hail', __FILE__),
+            '18' => __('Sleet', __FILE__),
+            '19' => __('Dust', __FILE__),
+            '20' => __('Foggy', __FILE__),
+            '21' => __('Haze', __FILE__),
+            '22' => __('Smoky', __FILE__),
+            '23' => __('Blustery', __FILE__),
+            '24' => __('Windy', __FILE__),
+            '25' => __('Cold', __FILE__),
+            '26' => __('Cloudy', __FILE__),
+            '27' => __('Mostly Cloudy (Night)', __FILE__),
+            '28' => __('Mostly Cloudy (Day)', __FILE__),
+            '29' => __('Partly Cloudy (Night)', __FILE__),
+            '30' => __('Partly Cloudy (Day)', __FILE__),
+            '31' => __('Clear', __FILE__),
+            '32' => __('Sunny', __FILE__),
+            '33' => __('Fair (Night)', __FILE__),
+            '34' => __('Fair (Day)', __FILE__),
+            '35' => __('Mixed Rain And Hail', __FILE__),
+            '36' => __('Hot', __FILE__),
+            '37' => __('Isolated Thunderstorms', __FILE__),
+            '38' => __('Scattered Thunderstorms', __FILE__),
+            '39' => __('Scattered Thunderstorms', __FILE__),
+            '40' => __('Scattered Showers', __FILE__),
+            '41' => __('Heavy Snow', __FILE__),
+            '42' => __('Scattered Snow Showers', __FILE__),
+            '43' => __('Heavy Snow', __FILE__),
+            '44' => __('Partly Cloudy', __FILE__),
+            '45' => __('Thundershowers', __FILE__),
+            '46' => __('Snow Showers', __FILE__),
+            '47' => __('Isolated Thundershowers', __FILE__),
+            '3200' => __('Not Available', __FILE__)
+        );
+
+        return strtr($condition, $conditions);
+
+    }
+
+    public function getWindDirection($bearing) {
+
+        $cardinal = round($bearing / 22.5);
+
+        switch($cardinal) {
+
+            case 1:
+                $direction = __('NNE', __FILE__);
+                break;
+            case 2:
+                $direction = __('NE', __FILE__);
+                break;
+            case 3:
+                $direction = __('ENE', __FILE__);
+                break;
+            case 4:
+                $direction = __('E', __FILE__);
+                break;
+            case 5:
+                $direction = __('ESE', __FILE__);
+                break;
+            case 6:
+                $direction = __('SE', __FILE__);
+                break;
+            case 7:
+                $direction = __('SSE', __FILE__);
+                break;
+            case 8:
+                $direction = __('S', __FILE__);
+                break;
+            case 9:
+                $direction = __('SSW', __FILE__);
+                break;
+            case 10:
+                $direction = __('SW', __FILE__);
+                break;
+            case 11:
+                $direction = __('WSW', __FILE__);
+                break;
+            case 12:
+                $direction = __('W', __FILE__);
+                break;
+            case 13:
+                $direction = __('WNW', __FILE__);
+                break;
+            case 14:
+                $direction = __('NW', __FILE__);
+                break;
+            case 15:
+                $direction = __('NNW', __FILE__);
+                break;
+            default:
+                $direction = __('N', __FILE__);
+
+        }
+
+        return $direction;
+
+    }
+
+    public function convertTime($time) {
+
+        $split = preg_split('/[\:\ ]+/', $time);
+        $meridiem = (strtolower($split[2]) == 'am') ? 'am' : 'pm';
+
+        return date('G:i', strtotime($split[0] . ':' . $split[1] . ' ' . $meridiem));
+
+    }
+
+    public function getSunrise($sunrise) {
+
+        if ($this->scale == 0) {
+            return $this->convertTime($sunrise);
+        } else {
+            return $sunrise;
+        }
+
+    }
+
+    public function getSunset($sunset) {
+
+        if ($this->scale == 0) {
+            return $this->convertTime($sunset);
+        } else {
+            return $sunset;
+        }
+
+    }
+
+    public function ___render() {
+
+        if (wire('page')->template == 'admin') return;
+
+        $scale = $this->scale ? 'f' : 'c';
+
+        $weather = $this->getWeather(wire('config')->paths->siteModules . 'MarkupYahooWeather/cache/' . $this->woeid . '.xml', 'http://weather.yahooapis.com/forecastrss?w=' . $this->woeid . '&u=' . $scale, $this->cache);
+
+        if ($weather) {
+
+            $xml = simplexml_load_string($weather);
+
+            $xml->registerXPathNamespace('yweather', 'http://xml.weather.yahoo.com/ns/rss/1.0');
+
+			$location = $xml->channel->xpath('yweather:location');
+
+			if (!empty($location)) {
+
+				foreach ($xml->channel->item as $item) {
+
+					$current = $item->xpath('yweather:condition');
+
+                    $wind = $xml->channel->xpath('yweather:wind');
+
+                    $sun = $xml->channel->xpath('yweather:astronomy');
+
+                    $unit = $this->scale == 0 ? 'km/h' : 'mph';
+
+                    setlocale(LC_TIME, $this->locale);
+
+                    $out = "<div id='weather'>";
+					    $out .= "<div class='location'>";
+                            $out .= "<h1>" . $location[0]['city'] . ", " . $location[0]['country'] . "</h1>";
+                            $out .= "<span>" . iconv($this->encoding, 'UTF-8', strftime($this->date, strtotime(date("d.m.Y.")))) . "</span>";
+                        $out .= "</div>";
+					    $out .= "<div class='current'>";
+					        $out .= "<img src='" . $this->config->urls->MarkupYahooWeather . "icons/" . $current[0]['code'] . ".png'/>";
+					        $out .= "<span class='temp'>" . $current[0]['temp'] . "&deg;" . strtoupper($scale) . "</span>";
+                            $out .= "<div class='condition'>" . __("Current:", __FILE__) . " <span>" . $this->getCondition($current[0]['code']) . "</span></div>";
+                            if($this->wind == 1) {
+                                $out .= "<div class='wind'>" . __("Wind:", __FILE__) . " <span>" . $this->getWindDirection($wind[0]['direction']) . ", " . $wind[0]['speed'] . " " . $unit . "</span></div>";
+                            }
+                            if($this->time == 1) {
+                                $out .= "<div class='sun'>" . __("Sunrise:", __FILE__) . " <span>" . $this->getSunrise($sun[0]['sunrise']) . "</span> " . __("Sunset:", __FILE__) . " <span>" . $this->getSunset($sun[0]['sunset']) . "</span></div>";
+                            }
+					    $out .= "</div>";
+
+                        $forecast = $item->xpath('yweather:forecast');
+
+                        if ($this->days == 1) {
+                            $out .= "<ul class='forecast'>";
+                            for ($i = 0; $i < 5; $i++) {
+                                $out .= "<li>";
+                                    $out .= "<span class='day'>" . $this->getDay($forecast[$i]['day']) . "</span>";
+                                    $out .= "<a class='weather-tooltip' data-tooltip='" . $this->getCondition($forecast[$i]['code']) . "'>";
+                                        $out .= "<img src='" . $this->config->urls->MarkupYahooWeather . "icons/" . $forecast[$i]['code'] . ".png'/>";
+                                    $out .= "</a>";
+                                    $out .= "<span class='high'>" . $forecast[$i]['high'] . "&deg;" . strtoupper($scale) . "</span>";
+                                    $out .= "<span class='low'>" . $forecast[$i]['low'] . "&deg;" . strtoupper($scale) . "</span>";
+                                $out .= "</li>";
+                            }
+                            $out .= "</ul>";
+                        }
+                    $out .= "</div>";
+
+                    return $out;
+
+                }
+
+            }
+
+        }
+
+    }
+
+	static public function getModuleConfigInputfields(array $data) {
+
+		$fields = new InputfieldWrapper();
+
+		$modules = wire('modules');
+
+		$data = array_merge(self::$options, $data);
+
+        $field = $modules->get("InputfieldText");
+		$field->name = "woeid";
+		$field->label = "Yahoo! Weather WOEID";
+		$field->value = $data['woeid'];
+		$field->description = __("WOEID (Where On Earth ID)", __FILE__);
+		$fields->add($field);
+
+        $field = $modules->get("InputfieldText");
+		$field->name = "locale";
+		$field->label = __("Set Locale", __FILE__);
+		$field->value = $data['locale'];
+		$field->description = __("See the [PHP setlocale](http://php.net/manual/en/function.setlocale.php) function reference for more information.", __FILE__);
+        $field->columnWidth = 50;
+        $fields->add($field);
+
+        $field = $modules->get("InputfieldText");
+		$field->name = "encoding";
+		$field->label = __("Set Encoding", __FILE__);
+		$field->value = $data['encoding'];
+		$field->description = __("Converts international date names to right format. Default = ISO-8859-1", __FILE__);
+        $field->columnWidth = 50;
+        $fields->add($field);
+
+        $field = $modules->get("InputfieldText");
+		$field->name = "date";
+		$field->label = __("Date Format", __FILE__);
+		$field->value = $data['date'];
+		$field->description = __("See the [PHP strftime](http://php.net/manual/en/function.strftime.php) function reference for more information.", __FILE__);
+        $field->columnWidth = 50;
+        $fields->add($field);
+
+        $field = $modules->get("InputfieldText");
+		$field->name = "cache";
+		$field->label = __("Cache Time", __FILE__);
+		$field->value = $data['cache'];
+		$field->description = __("Cache time in minutes. Default = 5 minutes", __FILE__);
+        $field->columnWidth = 50;
+        $fields->add($field);
+
+        $field = $modules->get("InputfieldCheckbox");
+		$field->name = "scale";
+        $field->label = __("Display temperature in Fahrenheit instead of Celsius?", __FILE__);
+        $field->value = 1;
+		$field->attr('checked', empty($data['scale']) ? '' : 'checked');
+        $field->columnWidth = 50;
+        $fields->add($field);
+
+        $field = $modules->get("InputfieldCheckbox");
+		$field->name = "days";
+        $field->label = __("Show 5 day forecast below current weather forecast?", __FILE__);
+        $field->value = 1;
+		$field->attr('checked', empty($data['days']) ? '' : 'checked');
+        $field->columnWidth = 50;
+        $fields->add($field);
+
+        $field = $modules->get("InputfieldCheckbox");
+		$field->name = "wind";
+        $field->label = __("Show wind direction and speed?", __FILE__);
+        $field->value = 1;
+		$field->attr('checked', empty($data['wind']) ? '' : 'checked');
+        $field->columnWidth = 50;
+        $fields->add($field);
+
+        $field = $modules->get("InputfieldCheckbox");
+		$field->name = "time";
+        $field->label = __("Show sunrise and sunset time?", __FILE__);
+        $field->value = 1;
+		$field->attr('checked', empty($data['time']) ? '' : 'checked');
+        $field->columnWidth = 50;
+        $fields->add($field);
+
+
+
+        $field = $modules->get("InputfieldCheckbox");
+		$field->name = "autoload";
+        $field->label = __("Autoload script and stylesheet?", __FILE__);
+        $field->value = 1;
+		$field->attr('checked', empty($data['autoload']) ? '' : 'checked');
+        $field->columnWidth = 50;
+        $fields->add($field);
+
+        $field = $modules->get("InputfieldCheckbox");
+		$field->name = "script";
+        $field->label = __("Load script in the bottom of the page?", __FILE__);
+        $field->value = 0;
+		$field->attr('checked', empty($data['script']) ? '' : 'checked');
+        $field->columnWidth = 50;
+        $fields->add($field);
+
+        $fieldset = $modules->get('InputfieldFieldset');
+        $fieldset->label = 'Delete weather cache';
+        $fieldset->description = 'New cache will be generated upon next page render (actual page that renders the module).';
+        $fields->add($fieldset);
+
+        $button = $modules->get("InputfieldButton");
+        $button->id = 'cache-delete';
+        $button->addClass('head_button_clone');
+        $button->type = 'submit';
+        $button->value = 'Delete Weather Cache';
+        $button->name = 'cache-delete';
+        $fieldset->add($button);
+
+		return $fields;
+
+    }
+
+}
