@@ -65,7 +65,7 @@ Shows sunrise and sunset time. **Default = Checked**
 Renders script and stylesheet during page render, if you prefer to include them manually, turn this option off. **Default = Checked**
 
 ### Load script in the bottom of the page?
-If "Autoload script and stylesheet" option is checked, you can select where script should be rendered automatically, before the end of </head> or </body> tag. **Default = Unchecked**
+If "Autoload script and stylesheet" option is checked, you can select where script should be rendered automatically, before the end of head or body tag. **Default = Unchecked**
 
 ### Delete Weather Cache
 Deletes locally stored and cached .xml file(s) from Yahoo! API for all instances of the module.
