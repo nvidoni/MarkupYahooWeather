@@ -289,7 +289,7 @@ class MarkupYahooWeather extends WireData implements Module, ConfigurableModule 
 
         $scale = $this->scale ? 'f' : 'c';
 
-        $weather = $this->getWeather(wire('config')->paths->siteModules . 'MarkupYahooWeather/cache/' . $this->woeid . '.xml', 'http://weather.yahooapis.com/forecastrss?w=' . $this->woeid . '&u=' . $scale, $this->cache);
+        $weather = $this->getWeather(wire('config')->paths->siteModules . 'MarkupYahooWeather/cache/' . $this->woeid . '.xml', 'http://xml.weather.yahoo.com/forecastrss?w=' . $this->woeid . '&u=' . $scale, $this->cache);
 
         if ($weather) {
 
