@@ -16,7 +16,7 @@ class MarkupYahooWeather extends WireData implements Module, ConfigurableModule 
 	public static function getModuleInfo() {
 		return array(
 			'title' => 'Markup Yahoo! Weather',
-			'version' => 100,
+			'version' => 101,
 			'summary' => __('Display weather forecast using Yahoo! Weather API', __FILE__),
             'href' => 'https://github.com/nvidoni/MarkupYahooWeather',
             'autoload' => true,
